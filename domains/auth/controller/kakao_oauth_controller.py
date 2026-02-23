@@ -2,6 +2,7 @@
 
 import httpx
 from fastapi import HTTPException, Query
+from sqlalchemy.orm import Session
 
 from domains.auth.schemas import AccessTokenResponse, KakaoUserInfo, OAuthLinkResponse
 from domains.auth.service.kakao_oauth_service import KakaoAuthServiceInterface
@@ -10,8 +11,9 @@ from domains.auth.service.kakao_oauth_service import KakaoAuthServiceInterface
 class KakaoAuthController:
     """Controller는 환경 변수, 기본값, URL 구성 로직을 다루지 않고 Service Interface에 위임한다."""
 
-    def __init__(self, service: KakaoAuthServiceInterface) -> None:
+    def __init__(self, service: KakaoAuthServiceInterface, db: Session) -> None:
         self._service = service
+        self._db = db
 
     def get_oauth_link(self) -> OAuthLinkResponse:
         """GET /auth/request-oauth-link: 인증 URL 반환 (PM-JIHYUN-2)."""
@@ -24,9 +26,9 @@ class KakaoAuthController:
         self,
         code: str = Query(..., description="Kakao 인증 후 전달된 인가 코드"),
     ) -> AccessTokenResponse:
-        """GET /auth/request-access-token-after-redirection: 인가 코드로 토큰 발급 (PM-JIHYUN-3)."""
+        """GET /auth/request-access-token-after-redirection: 인가 코드로 로그인 처리 후 JWT·사용자 반환."""
         try:
-            return self._service.request_access_token(code=code)
+            return self._service.request_access_token(code=code, db=self._db)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except httpx.HTTPStatusError as e:

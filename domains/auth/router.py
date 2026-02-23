@@ -1,36 +1,37 @@
-"""Kakao 인증 FastAPI 라우터. Controller에만 의존한다."""
+"""Kakao 인증 FastAPI 라우터. Controller에만 의존하며 DB 세션은 Depends(get_db)로 주입."""
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 
+from core.database import get_db
 from domains.auth.controller.kakao_oauth_controller import KakaoAuthController
-from domains.auth.schemas import AccessTokenResponse, KakaoUserInfo, OAuthLinkResponse
+from domains.auth.dependencies import get_current_user
+from domains.auth.schemas import AuthUserResponse, KakaoUserInfo, OAuthLinkResponse
 from domains.auth.service.kakao_oauth_service_impl import KakaoOAuthServiceImpl
 
 
-def get_controller() -> KakaoAuthController:
-    """Controller 의존성. Service 구현체를 주입한다."""
+def get_controller(db: Session = Depends(get_db)) -> KakaoAuthController:
+    """Controller 의존성. Service 구현체와 DB 세션을 주입한다."""
     service = KakaoOAuthServiceImpl()
-    return KakaoAuthController(service=service)
+    return KakaoAuthController(service=service, db=db)
 
 
 router = APIRouter()
 
 
 def _login_response_json(data) -> dict:
-    """로그인 성공 시 이미지와 같은 형태의 JSON: token + user_info."""
+    """로그인 성공 시 JSON: JWT token + user_info(우리 DB 사용자)."""
     token = {
         "access_token": data.access_token,
         "token_type": data.token_type,
-        "refresh_token": data.refresh_token,
         "expires_in": data.expires_in,
-        "refresh_token_expires_in": data.refresh_token_expires_in,
-        "scope": data.scope,
     }
     user = data.user
     user_info = (
         {
             "id": user.id,
+            "kakao_id": user.kakao_id,
             "nickname": user.nickname,
             "email": user.email,
             "profile_image_url": user.profile_image_url,
@@ -81,3 +82,16 @@ def get_user_info(
 ) -> KakaoUserInfo:
     """발급받은 액세스 토큰으로 Kakao 사용자 정보를 조회한다."""
     return controller.get_user_info(access_token=access_token)
+
+
+@router.get(
+    "/me",
+    response_model=AuthUserResponse,
+    summary="현재 로그인 사용자 조회",
+    description="Authorization: Bearer <JWT> 로 현재 로그인한 우리 DB 사용자 정보를 반환합니다.",
+)
+def get_me(
+    current_user: AuthUserResponse = Depends(get_current_user),
+) -> AuthUserResponse:
+    """JWT로 인증된 현재 사용자 정보를 반환한다."""
+    return current_user

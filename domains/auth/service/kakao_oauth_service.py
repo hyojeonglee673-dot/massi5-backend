@@ -2,6 +2,8 @@
 
 from abc import ABC, abstractmethod
 
+from sqlalchemy.orm import Session
+
 from domains.auth.schemas import AccessTokenResponse, KakaoUserInfo, OAuthLinkResponse
 
 
@@ -14,8 +16,8 @@ class KakaoAuthServiceInterface(ABC):
         ...
 
     @abstractmethod
-    def request_access_token(self, code: str) -> AccessTokenResponse:
-        """인가 코드로 액세스 토큰을 요청하고, 사용자 정보와 함께 반환한다 (PM-JIHYUN-3, PM-JIHYUN-4)."""
+    def request_access_token(self, code: str, db: Session) -> AccessTokenResponse:
+        """인가 코드로 Kakao 토큰·사용자 조회 후, DB에 사용자 저장/조회하고 JWT 및 우리 사용자 정보를 반환한다."""
         ...
 
     @abstractmethod
