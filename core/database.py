@@ -24,8 +24,18 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
+def drop_all_tables() -> None:
+    """모든 테이블을 삭제한다. 스키마 변경 후 테이블 재생성 시 1회만 사용."""
+    SQLModel.metadata.drop_all(engine)
+
+
 def create_db_and_tables() -> None:
-    """SQLModel 메타데이터로 테이블 생성. 앱 시작 시 호출 가능."""
+    """SQLModel 메타데이터로 테이블 생성. 앱 시작 시 호출 가능.
+    스키마 변경(예: kakao_id Integer → BigInteger) 후에는 기존 테이블을 먼저 삭제해야 한다:
+        from core.database import drop_all_tables, create_db_and_tables
+        drop_all_tables()
+        create_db_and_tables()
+    """
     SQLModel.metadata.create_all(engine)
 
 

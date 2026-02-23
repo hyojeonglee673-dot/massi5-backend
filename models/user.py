@@ -3,6 +3,7 @@
 from datetime import datetime
 from typing import Optional
 
+from sqlalchemy import BigInteger, Column
 from sqlmodel import Field, SQLModel
 
 
@@ -12,7 +13,10 @@ class User(SQLModel, table=True):
     __tablename__ = "users"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    kakao_id: int = Field(unique=True, index=True, description="Kakao 사용자 ID")
+    kakao_id: int = Field(
+        sa_column=Column("kakao_id", BigInteger(), unique=True, index=True, nullable=False),
+        description="Kakao 사용자 ID (21억 초과 가능)",
+    )
     email: Optional[str] = Field(default=None, max_length=255)
     nickname: Optional[str] = Field(default=None, max_length=100)
     profile_image_url: Optional[str] = Field(default=None, max_length=512)
