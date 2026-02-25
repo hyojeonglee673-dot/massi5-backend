@@ -1,10 +1,11 @@
-"""Reports Controller. Service에 위임하며 DB 세션을 주입받는다."""
+"""Reports Controller (Backlog-002)."""
 
 from datetime import date
 
 from sqlalchemy.orm import Session
 
-from domains.reports.schemas import ReportResponse
+from core.report_period import PERIOD_TYPES, PeriodType
+from domains.reports.schemas import PeriodReportResponse
 from domains.reports.service.report_service import ReportServiceInterface
 
 
@@ -14,9 +15,17 @@ class ReportController:
         self._db = db
 
     def get_period_report(
-        self, user_id: int, start_date: date, end_date: date
-    ) -> ReportResponse:
-        """기간별 리포트 조회."""
+        self,
+        user_id: int,
+        period: PeriodType,
+        reference_date: date,
+        top_n: int = 5,
+    ) -> PeriodReportResponse:
+        """기준일이 속한 주/월/연 식습관 리포트 조회."""
         return self._service.get_period_report(
-            self._db, user_id=user_id, start_date=start_date, end_date=end_date
+            self._db,
+            user_id=user_id,
+            period=period,
+            reference_date=reference_date,
+            top_n=top_n,
         )

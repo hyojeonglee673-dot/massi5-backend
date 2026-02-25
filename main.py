@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from config.env import load_env
 from core.database import create_db_and_tables
 from domains.auth.router import router as auth_router
+from domains.community.feed import feed_router, reactions_router
 from domains.lunch_records.router import router as lunch_records_router
 from domains.reports.router import router as reports_router
 from domains.users.router import router as users_router
@@ -32,6 +33,8 @@ app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(users_router, prefix="/users", tags=["users"])
 app.include_router(lunch_records_router, prefix="/lunch-records", tags=["lunch-records"])
 app.include_router(reports_router, prefix="/reports", tags=["reports"])
+app.include_router(feed_router, prefix="/community", tags=["community"])
+app.include_router(reactions_router, tags=["community"])
 
 
 if __name__ == "__main__":

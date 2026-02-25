@@ -13,7 +13,9 @@ class LunchRecord(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id", index=True)
-    recorded_at: date = Field(description="기록한 날짜")
+    recorded_at: date = Field(description="기록한 날짜(식사일)")
+    category: Optional[str] = Field(default=None, max_length=50, description="음식 카테고리 예: KOREAN, JAPANESE")
+    menu_name: Optional[str] = Field(default=None, max_length=200, description="메뉴명")
     content: Optional[str] = Field(default=None, max_length=2000, description="메모/내용")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
